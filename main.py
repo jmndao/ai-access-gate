@@ -25,6 +25,9 @@ status_msg = ''
 # array of (faces, success, user_name)
 detected_faces = []
 
+users_cache = None
+cache_time = None
+
 
 screen_size = (640, 480)
 img_lock = Lock()
@@ -187,8 +190,12 @@ def index():
 @app.route('/users')
 def query_users():
     global face_authenticator
-    users = face_authenticator.query_user_ids()
-    return jsonify(len(users))
+    global users_cache
+    global cache_time
+    if users_cache is None or cache_time + 10*60 < time.time():
+        users_cache = face_authenticator.query_user_ids()
+        cache_time = time.time()
+    return jsonify(len(users_cache))
 
 
 @app.route('/video_feed')
