@@ -5,6 +5,7 @@
 # import the necessary packages
 from flask import Flask, render_template, Response, request, send_from_directory
 
+from threading import Lock
 import time
 import os
 
@@ -15,15 +16,19 @@ import rsid_py
 
 # App Globals (do not edit)
 app = Flask(__name__)
-screen_size = (920, 600)
+
+screen_size = (640, 480)
+img_lock = Lock()
 
 def on_image(image):
+    img_lock.acquire()
     buffer = memoryview(image.get_buffer())
     arr = np.asarray(buffer, dtype=np.uint8)
     arr2d = arr.reshape((image.height, image.width, -1))
     img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
     img_scaled = cv2.resize(img_rgb, screen_size)
-    cv2.imwrite('capture.jpg', img_scaled)
+    cv2.imwrite('capture.jpg', img_scaled, [cv2.IMWRITE_JPEG_QUALITY,80])
+    img_lock.release()
 
 class VideoStream:
     def __init__(self):
@@ -34,6 +39,7 @@ class VideoStream:
 
     def gen(self):
         while True:
+            time.sleep(1)
             yield(b'--frame\r\n'
                   b'Content-Type: image/jpeg\r\n\r\n' +  open('capture.jpg','rb').read() + b'\r\n\r\n')
 
@@ -58,6 +64,6 @@ def take_picture():
 
 if __name__ == '__main__':
     try:
-        app.run(host='0.0.0.0', debug=False)
+        app.run(host='0.0.0.0', debug=False, threaded=True, processes=1)
     finally:
         VideoStream().p.stop()
