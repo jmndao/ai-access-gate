@@ -156,6 +156,8 @@ def on_image(image):
 
     img_scaled = show_status(status_msg, image=img_scaled, color=color)
 
+    time.sleep(0.3)
+
     cv2.imwrite('capture.jpg', img_scaled, [cv2.IMWRITE_JPEG_QUALITY, 80])
     img_lock.release()
 
