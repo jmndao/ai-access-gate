@@ -7,21 +7,23 @@ from flask import Flask, render_template, Response, request, send_from_directory
 
 import time
 import os
-import threading
 
 import cv2
 import numpy as np
 import rsid_py
 
-frame = None
 
 # App Globals (do not edit)
 app = Flask(__name__)
+screen_size = (920, 600)
 
 def on_image(image):
     buffer = memoryview(image.get_buffer())
     arr = np.asarray(buffer, dtype=np.uint8)
-    cv2.imwrite('capture.jpg', arr)
+    arr2d = arr.reshape((image.height, image.width, -1))
+    img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
+    img_scaled = cv2.resize(img_rgb, screen_size)
+    cv2.imwrite('capture.jpg', img_scaled)
 
 class VideoStream:
     def __init__(self):
