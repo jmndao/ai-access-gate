@@ -228,8 +228,8 @@
     <script>
         $(document).ready(function() {
             $('#enroll_button').click(function() {
-                var username = $('#user').val();
-                if (username != '') {
+                var user = $('#user').val();
+                if (user != '') {
                     $.ajax({
                         url: "/enroll",
                         method: "POST",
