@@ -64,13 +64,6 @@ def on_faces(faces, timestamp):
     detected_faces = [{'face': f} for f in faces]
 
 
-def auth_example():
-    global status_msg
-    with rsid_py.FaceAuthenticator(PORT) as f:
-        status_msg = "Authenticating.."
-        f.authenticate(on_hint=on_hint, on_result=on_result, on_faces=on_faces)
-
-
 def remove_all_users():
     global status_msg
     with rsid_py.FaceAuthenticator(PORT) as f:
@@ -179,18 +172,25 @@ def index():
     return render_template('index.html')  # you can customze index.html here
 
 
+@app.route('/users')
+def query_users():
+    with rsid_py.FaceAuthenticator(PORT) as f:
+        return jsonify(f.query_user_ids().count())
+
+
 @app.route('/video_feed')
 def video_feed():
     return Response(VideoStream().gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# Take a photo when pressing camera button
 
-
-@app.route('/picture')
-def take_picture():
-    # pi_camera.take_picture()
-    return "None"
+@app.route('/authenticate', methods=["GET"])
+def authenticate():
+    global status_msg
+    with rsid_py.FaceAuthenticator(PORT) as f:
+        status_msg = "Authenticating.."
+        f.authenticate(on_hint=on_hint, on_result=on_result, on_faces=on_faces)
+    return jsonify(status_msg)
 
 
 @app.route('/enroll', methods=["POST", "GET"])
@@ -200,9 +200,15 @@ def enroll():
         with rsid_py.FaceAuthenticator(PORT) as f:
             f.enroll(user_id=user, on_hint=on_hint,
                      on_progress=on_progress, on_faces=on_faces, on_result=on_result)
-    else:
-        msg = 'No-data'
-    return jsonify(msg)
+    return jsonify(status_msg)
+
+
+@app.route('/exit')
+def exit_app():
+    global status_msg
+    status_msg = 'Bye.. :)'
+    time.sleep(0.4)
+    os._exit(0)
 
 
 if __name__ == '__main__':
