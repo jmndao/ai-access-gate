@@ -174,8 +174,10 @@ def index():
 
 @app.route('/users')
 def query_users():
+    users = []
     with rsid_py.FaceAuthenticator(PORT) as f:
-        return jsonify(f.query_user_ids().count())
+        users = f.query_user_ids()
+    return jsonify(len(users))
 
 
 @app.route('/video_feed')
