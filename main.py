@@ -19,25 +19,120 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'df0331cefc6c2b9a5d0208a726a5d1c0fd37324feba25506'
 PORT = '/dev/ttyACM0'
 
+status_msg = ''
+# array of (faces, success, user_name)
+detected_faces = []
+
 
 screen_size = (640, 480)
 img_lock = Lock()
 
 
-def on_result(result):
-    print('on_result', result)
+def on_result(result, user_id=None):
+    global status_msg
+    global detected_faces
+
+    success = result == rsid_py.AuthenticateStatus.Success
+    status_msg = f'Success "{user_id}"' if success else str(result)
+
+    if success:
+        print("Gate is opening...")
+        # gate_trigger()
+
+    # find next face without a status
+    for f in detected_faces:
+        if not 'success' in f:
+            f['success'] = success
+            f['user_id'] = user_id
+            break
 
 
 def on_progress(p):
-    pass
+    global status_msg
+    status_msg = f'on_progress {p}'
 
 
 def on_hint(h):
-    pass
+    global status_msg
+    status_msg = f'{h}'
 
 
 def on_faces(faces, timestamp):
-    pass
+    global status_msg
+    global detected_faces
+    status_msg = f'detected {len(faces)} face(s)'
+    detected_faces = [{'face': f} for f in faces]
+
+
+def auth_example():
+    global status_msg
+    with rsid_py.FaceAuthenticator(PORT) as f:
+        status_msg = "Authenticating.."
+        f.authenticate(on_hint=on_hint, on_result=on_result, on_faces=on_faces)
+
+
+def remove_all_users():
+    global status_msg
+    with rsid_py.FaceAuthenticator(PORT) as f:
+        status_msg = "Remove.."
+        f.remove_all_users()
+        status_msg = 'Remove Success'
+
+
+# Preview
+
+def color_from_msg(msg):
+    if 'Success' in msg:
+        return (0x3c, 0xff, 0x3c)
+    if 'Forbidden' in msg or 'Fail' in status_msg or 'NoFace' in status_msg:
+        return (0x3c, 0x3c, 255)
+    return (0xcc, 0xcc, 0xcc)
+
+
+def show_face(face, image):
+    # scale rets from 1080p
+    f = face['face']
+
+    scale_x = image.shape[1] / 980.0
+    scale_y = image.shape[0] / 1920.0
+    x = int(f.x * scale_x)
+    y = int(f.y * scale_y)
+    w = int(f.w * scale_y)
+    h = int(f.h * scale_y)
+
+    start_point = (x, y)
+    end_point = (x + w, y + h)
+    success = face.get('success')
+    if success is None:
+        color = (0x33, 0xcc, 0xcc)  # yellow
+    else:
+        color = (0x11, 0xcc, 0x11) if success else (0x11, 0x11, 0xcc)
+    thickness = 2
+    cv2.rectangle(image, start_point, end_point, color, thickness)
+
+
+def show_status(msg, image, color):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 1.4
+    thickness = 3
+    padding = 20
+
+    (msg_w, msg_h), _ = cv2.getTextSize(
+        msg, font, fontScale=font_scale, thickness=thickness)
+    image_h, image_w = image.shape[0], image.shape[1]
+    rect_x = 0
+    rect_y = image_h - msg_h - padding * 2
+
+    start_point = (rect_x, rect_y)
+    end_point = (image_w, image_h)
+
+    bg_color = (0x33, 0x33, 0x33)
+    image = cv2.rectangle(image, start_point, end_point, bg_color, -thickness)
+    # align to center
+    text_x = int((image_w - msg_w) / 2)
+    text_y = rect_y + msg_h + padding
+    msg = msg.replace('Status.', ' ')
+    return cv2.putText(image, msg, (text_x, text_y), font, font_scale, color, thickness, cv2.LINE_AA)
 
 
 def on_image(image):
@@ -47,6 +142,17 @@ def on_image(image):
     arr2d = arr.reshape((image.height, image.width, -1))
     img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
     img_scaled = cv2.resize(img_rgb, screen_size)
+
+    # show faces
+    for f in detected_faces:
+        show_face(f, img_scaled)
+
+    img_scaled = cv2.flip(img_scaled, 1)
+
+    color = color_from_msg(status_msg)
+
+    img_scaled = show_status(status_msg, image=img_scaled, color=color)
+
     cv2.imwrite('capture.jpg', img_scaled, [cv2.IMWRITE_JPEG_QUALITY, 80])
     img_lock.release()
 
