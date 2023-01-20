@@ -131,7 +131,7 @@
 
     <div class="top-right-logo">
         <a style="font-weight: 900; color: blue;">DAUST - AI Access Gate</a>
-        <span>{{ url_for('/users') }}</span>
+        <span id="users">0</span>
     </div>
 
 
@@ -251,6 +251,26 @@
                 }
             });
         });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            window.setInterval(function() {
+                getUsers();
+            }, 10000);
+        });
+
+        function getUsers() {
+            alert("Hi");
+            $("#users").html("0");
+            $.ajax({
+                url: "/users",
+                method: "GET",
+                success: function(data) {
+                    $("#users").html(data);
+                }
+            });
+        }
     </script>
 
 </body>
