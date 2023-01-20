@@ -19,6 +19,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'df0331cefc6c2b9a5d0208a726a5d1c0fd37324feba25506'
 PORT = '/dev/ttyACM0'
 
+face_authenticator = None
+
 status_msg = ''
 # array of (faces, success, user_name)
 detected_faces = []
@@ -26,6 +28,14 @@ detected_faces = []
 
 screen_size = (640, 480)
 img_lock = Lock()
+
+
+def init_face_authenticator():
+    global face_authenticator
+    face_authenticator = rsid_py.FaceAuthenticator(PORT)
+
+    def __del__(self):
+        face_authenticator.stop_preview()
 
 
 def on_result(result, user_id=None):
@@ -174,9 +184,8 @@ def index():
 
 @app.route('/users')
 def query_users():
-    users = []
-    with rsid_py.FaceAuthenticator(PORT) as f:
-        users = f.query_user_ids()
+    global face_authenticator
+    users = face_authenticator.query_user_ids()
     return jsonify(len(users))
 
 
@@ -189,19 +198,22 @@ def video_feed():
 @app.route('/authenticate', methods=["GET"])
 def authenticate():
     global status_msg
-    with rsid_py.FaceAuthenticator(PORT) as f:
-        status_msg = "Authenticating.."
-        f.authenticate(on_hint=on_hint, on_result=on_result, on_faces=on_faces)
+    global face_authenticator
+
+    status_msg = "Authenticating.."
+    face_authenticator.authenticate(
+        on_hint=on_hint, on_result=on_result, on_faces=on_faces)
     return jsonify(status_msg)
 
 
 @app.route('/enroll', methods=["POST", "GET"])
 def enroll():
+    global face_authenticator
+
     if request.method == 'POST':
         user = request.form['user']
-        with rsid_py.FaceAuthenticator(PORT) as f:
-            f.enroll(user_id=user, on_hint=on_hint,
-                     on_progress=on_progress, on_faces=on_faces, on_result=on_result)
+        face_authenticator.enroll(user_id=user, on_hint=on_hint,
+                                  on_progress=on_progress, on_faces=on_faces, on_result=on_result)
     return jsonify(status_msg)
 
 
@@ -215,6 +227,7 @@ def exit_app():
 
 if __name__ == '__main__':
     try:
+        init_face_authenticator()
         app.run(host='0.0.0.0', debug=False, threaded=True, processes=1)
     finally:
         VideoStream().p.stop()
