@@ -8,18 +8,28 @@ from flask import Flask, render_template, Response, request, jsonify
 from threading import Lock
 import time
 import os
+import base64
 
 import cv2
 import numpy as np
 import rsid_py
 
 
+# try:
+#     from pymata4 import pymata4 as py4
+# except ImportError:
+#     print('Failed importing pyfirmata. Please install it (pip install pyfirmata)')
+#     exit(0)
+
 # App Globals (do not edit)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'df0331cefc6c2b9a5d0208a726a5d1c0fd37324feba25506'
 PORT = '/dev/ttyACM0'
+ARDUINO_PORT = '/dev/ttyACM1'
+
 
 face_authenticator = None
+board = None
 
 status_msg = ''
 # array of (faces, success, user_name)
@@ -31,6 +41,21 @@ cache_time = None
 
 screen_size = (640, 480)
 img_lock = Lock()
+
+# Pin definition
+BOARD_PIN = 7
+E_PIN = 8
+T_PIN = 9
+
+
+# def gate_trigger():
+
+#     global board
+
+#     board.digital_write(BOARD_PIN, 0)
+#     time.sleep(1)
+#     board.digital_write(BOARD_PIN, 1)
+#     return
 
 
 def init_face_authenticator():
@@ -90,7 +115,7 @@ def remove_all_users():
 def color_from_msg(msg):
     if 'Success' in msg:
         return (0x3c, 0xff, 0x3c)
-    if 'Forbidden' in msg or 'Fail' in status_msg or 'NoFace' in status_msg:
+    if 'Forbidden' in msg or 'Fail' in msg or 'NoFace' in msg:
         return (0x3c, 0x3c, 255)
     return (0xcc, 0xcc, 0xcc)
 
@@ -149,6 +174,16 @@ def on_image(image):
     img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
     img_scaled = cv2.resize(img_rgb, screen_size)
 
+    # capture still image
+    img_file = 'image.jpg'
+    cv2.imwrite(img_file, img_scaled)
+
+    # send file to frontend
+    with open(img_file, 'rb') as f:
+        image_bytes = f.read()
+    image_b64 = base64.b64encode(image_bytes).decode('ascii')
+    response = {'image': image_b64}
+
     # show faces
     for f in detected_faces:
         show_face(f, img_scaled)
@@ -156,12 +191,8 @@ def on_image(image):
     img_scaled = cv2.flip(img_scaled, 1)
 
     color = color_from_msg(status_msg)
+    img_scaled = show_status(status_msg, img_scaled, color)
 
-    img_scaled = show_status(status_msg, image=img_scaled, color=color)
-
-    time.sleep(0.3)
-
-    cv2.imwrite('capture.jpg', img_scaled, [cv2.IMWRITE_JPEG_QUALITY, 80])
     img_lock.release()
 
 
@@ -206,7 +237,6 @@ def video_feed():
 
 @app.route('/authenticate', methods=["GET"])
 def authenticate():
-    global status_msg
     global face_authenticator
 
     status_msg = "Authenticating.."
@@ -235,8 +265,46 @@ def exit_app():
 
 
 if __name__ == '__main__':
+    # board = py4.Pymata4(ARDUINO_PORT)
+
+    board.set_pin_mode_digital_output(BOARD_PIN)
+    board.set_pin_mode_digital_output(13)
+
+    board.digital_write(13, 1)  # turn on test led.
+    board.digital_write(BOARD_PIN, 1)  # close gate at start
     try:
         init_face_authenticator()
         app.run(host='0.0.0.0', debug=False, threaded=True, processes=1)
     finally:
         VideoStream().p.stop()
+
+
+@app.route('/authenticate', methods=['POST'])
+def authenticate():
+    global face_authenticator
+    global status_msg
+    global detected_faces
+
+    if not face_authenticator:
+        init_face_authenticator()
+
+    # check if there is any presence nearby
+    dist = int(board.sonar_read(t_pin)[0])
+    if dist >= 10 and dist <= 50:
+        # trigger the face detection
+        face_authenticator.start_preview(
+            on_faces, on_result, on_progress, on_hint)
+    else:
+        status_msg = "Please get close to the sensor"
+        return jsonify({'status': status_msg})
+
+    # wait for the detection to finish
+    while len(detected_faces) == 0 or 'success' not in detected_faces[0]:
+        time.sleep(0.01)
+
+    # return the detection result
+    result = detected_faces[0]
+    user_id = result.get('user_id')
+    success = result.get('success')
+    status_msg = f'Success "{user_id}"' if success else 'Access Denied'
+    return jsonify({'status': status_msg})
