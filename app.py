@@ -51,11 +51,19 @@ class FaceID:
         self.image = self.image.resize(
             self.img_size, Image.LANCZOS)  # Resize image to 300x300
         self.image = ImageTk.PhotoImage(self.image)
+
+        # Improvements
+        # Create a circular mask
+        # mask = Image.new("L", self.img_size, 0)
+        # draw = ImageDraw.Draw(mask)
+        # draw.ellipse((0, 0) + self.img_size, fill=255)
+
+        # # Apply the mask to the image
+        # self.image.putalpha(mask)
+
+
         self.image_label = tk.Label(self.master, image=self.image)
         self.image_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-        self.message_label = tk.Label(
-            self.master, text="Message", font=("Arial", 16))
-        self.message_label.place(relx=0.5, rely=0.75, anchor=tk.CENTER)
 
         # Set up buttons
         self.button_frame = tk.Frame(self.master)
@@ -259,6 +267,26 @@ class FaceID:
         # self.board.digital_write(BOARD_PIN, 1)
         # return
         print("Opening...")
+
+    ### Improvements
+    # def authenticate(self):
+    #     # Authenticate user using FaceAuthenticator class
+    #     def authenticate_thread():
+    #         self.f.authenticate(status_callback=self.authenticate_status_callback)
+
+    #     threading.Thread(target=authenticate_thread).start()
+        
+    # def authenticate_status_callback(self, status):
+    #     if status == AuthenticateStatus.SUCCESS:
+    #         # Access granted
+    #         self.open_door()
+    #     elif status == AuthenticateStatus.ERROR:
+    #         # Authentication error
+    #         self.show_message("Authentication failed.")
+    #     elif status == AuthenticateStatus.USER_UNKNOWN:
+    #         # Unknown user
+    #         self.show_message("User not recognized.")
+
 
 
 if __name__ == "__main__":
