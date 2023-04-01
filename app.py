@@ -77,7 +77,8 @@ class FaceID:
         user_id_entry.pack()
 
         # Set up enroll button
-        enroll_button = tk.Button(popup, text="Enroll", command=lambda: self.do_enroll(popup, user_id_var.get()))
+        enroll_button = tk.Button(
+            popup, text="Enroll", command=lambda: self.do_enroll(popup, user_id_var.get()))
         enroll_button.pack()
 
     def do_enroll(self, popup, user_id):
@@ -91,7 +92,6 @@ class FaceID:
             # Display error message if enrollment fails
             error_label = tk.Label(popup, text=str(e))
             error_label.pack()
-
 
     def update_count_label(self):
         # Update the user count label
@@ -107,8 +107,8 @@ class FaceID:
             if distance < 50:
                 self.f.preview(False)
                 # status_msg = 'Detecting person...'
-                self.f.authenticate(
-                    on_result=self.on_result, on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
+                self.f.authenticate(on_result=lambda result: self.on_result(result, user_id=self.user_id_var.get()),
+                                    on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
 
     def quit(self):
         # Add functionality for Quit button
