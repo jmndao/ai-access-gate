@@ -60,7 +60,7 @@ class FaceID:
         self.enroll_button = tk.Button(
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
-
+ 
         self.f = FaceAuthenticator(PORT)
 
     def enroll(self):
@@ -95,7 +95,7 @@ class FaceID:
 
     def update_count_label(self):
         # Update the user count label
-        count = len(FaceAuthenticator(PORT).query_user_ids())
+        count = len(self.f.query_user_ids())
         # Update count
         self.count = count
         self.count_label.config(text=f"Enrolled users: {count}")
