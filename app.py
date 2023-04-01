@@ -9,7 +9,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 import cv2
-from rsid_py import FaceAuthenticator
+from rsid_py import FaceAuthenticator, AuthenticateStatus
 
 
 PORT = '/dev/ttyACM0'
@@ -140,6 +140,9 @@ class FaceID:
         # add this code to capture and save the image
         self.capture_image()
 
+        if AuthenticateStatus.Success:
+            self.gate_trigger()
+
     def start_ultrasonic_detection(self):
         while True:
             time.sleep(0.5)
@@ -191,10 +194,11 @@ class FaceID:
         print(result)
 
     def gate_trigger(self):
-        self.board.digital_write(BOARD_PIN, 0)
-        time.sleep(1)
-        self.board.digital_write(BOARD_PIN, 1)
-        return
+        # self.board.digital_write(BOARD_PIN, 0)
+        # time.sleep(1)
+        # self.board.digital_write(BOARD_PIN, 1)
+        # return
+        print("Opening...")
 
 
 if __name__ == "__main__":
