@@ -83,6 +83,9 @@ class FaceID:
         # Image lock
         self.img_lock = Lock()
 
+        # Status msg
+        self.status_msg = ""
+
         try:
             from pymata4 import pymata4 as py4
         except ImportError:
@@ -146,7 +149,12 @@ class FaceID:
         p.stop()
 
         if AuthenticateStatus.Success:
+            self.status_msg = "Authentication successful"
             self.gate_trigger()
+        elif AuthenticateStatus.Failed:
+            self.status_msg = "Authentication failed"
+        else:
+            self.status_msg = "Please correct your posture"
 
     def start_ultrasonic_detection(self):
         self.board.set_pin_mode_sonar(T_PIN, E_PIN)
@@ -154,7 +162,6 @@ class FaceID:
             time.sleep(0.05)
 
             distance = int(self.board.sonar_read(T_PIN)[0])
-            print(distance)
             if distance >= 10 and distance <= 50:
                 self.authenticate()
 
@@ -165,12 +172,49 @@ class FaceID:
         # Add functionality for Quit button
         self.master.destroy()
 
+    def color_from_msg(self):
+        if 'successful' in self.status_msg:
+            return (0x3c, 0xff, 0x3c)
+        if 'failed' in self.status_msg or 'Fail' in self.status_msg or 'NoFace' in self.status_msg:
+            return (0x3c, 0x3c, 255)
+        return (0xcc, 0xcc, 0xcc)
+
+    def show_status(self, image, color):
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1.4
+        thickness = 3
+        padding = 20
+
+        (msg_w, msg_h), _ = cv2.getTextSize(
+            self.status_msg, font, fontScale=font_scale, thickness=thickness)
+        image_h, image_w = image.shape[0], image.shape[1]
+        rect_x = 0
+        rect_y = image_h - msg_h - padding * 2
+
+        start_point = (rect_x, rect_y)
+        end_point = (image_w, image_h)
+
+        bg_color = (0x33, 0x33, 0x33)
+        image = cv2.rectangle(image, start_point,
+                              end_point, bg_color, -thickness)
+        # align to center
+        text_x = int((image_w - msg_w) / 2)
+        text_y = rect_y + msg_h + padding
+        msg = self.status_msg.replace('Status.', ' ')
+        return cv2.putText(image, self.status_msg, (text_x, text_y), font, font_scale, color, thickness, cv2.LINE_AA)
+
     def capture_image(self, image):
         self.img_lock.acquire()
         buffer = memoryview(image.get_buffer())
         arr = np.asarray(buffer, dtype=np.uint8)
         arr2d = arr.reshape((image.height, image.width, -1))
         img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
+
+        # Extract corresponding color
+        color = self.color_from_msg()
+
+        img_rgb = self.show_status(image=img_rgb, color=color)
+
         img_scaled = cv2.resize(img_rgb, self.img_size)
 
         # create captures folder if it doesn't exist
