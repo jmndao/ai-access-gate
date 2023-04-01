@@ -62,34 +62,34 @@ class FaceID:
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
 
     def enroll(self):
-        # Create popup window
-        popup_window = tk.Toplevel(self.master)
-        popup_window.title("Enroll User")
+        # Enroll function using FaceAuthenticator class
+        popup = tk.Toplevel(self.master)
+        popup.title("Enroll User")
+        popup.geometry("300x150")
 
-        # Create label and entry widgets for user ID input
-        user_id_label = tk.Label(popup_window, text="Enter User ID:")
+        # Set up user id label and entry field
+        user_id_label = tk.Label(popup, text="Enter User ID:")
         user_id_label.pack()
-        user_id_input = tk.Entry(popup_window, textvariable=self.user_id_var)
-        user_id_input.pack()
+        user_id_var = tk.StringVar()
+        user_id_entry = tk.Entry(popup, textvariable=user_id_var)
+        user_id_entry.pack()
 
-        # Create OK button to close the popup window and trigger enrollment
-        ok_button = tk.Button(popup_window, text="OK", command=self.do_enroll)
-        ok_button.pack()
+        # Set up enroll button
+        enroll_button = tk.Button(popup, text="Enroll", command=lambda: self.do_enroll(popup, user_id_var.get()))
+        enroll_button.pack()
 
-    def do_enroll(self):
-        # Get user ID from the input field
-        user_id = self.user_id_var.get()
-
-        # Enroll function using rsid_py library
-        with FaceAuthenticator(PORT) as f:
-            f.enroll(user_id=user_id, on_hint=self.on_hint, on_progress=self.on_progress,
-                     on_faces=self.on_faces, on_result=self.on_result)
-
-            # Update user count label
+    def do_enroll(self, popup, user_id):
+        # Enroll user using FaceAuthenticator class
+        face_authenticator = FaceAuthenticator()
+        try:
+            face_authenticator.enroll(user_id=user_id)
+            popup.destroy()
             self.update_count_label()
+        except Exception as e:
+            # Display error message if enrollment fails
+            error_label = tk.Label(popup, text=str(e))
+            error_label.pack()
 
-        # Close the popup window
-        self.popup_window.destroy()
 
     def update_count_label(self):
         # Update the user count label
