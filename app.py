@@ -1,10 +1,14 @@
+import os
 import time
 import threading
+from threading import Lock
 
+import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 
+import cv2
 from rsid_py import FaceAuthenticator
 
 
@@ -19,6 +23,9 @@ class FaceID:
         self.master.geometry("{0}x{1}+0+0".format(
             self.master.winfo_screenwidth(), self.master.winfo_screenheight()))
 
+        # Center Image size
+        self.img_size = (400, 400)
+
         # Set up header title and count label
         self.header_label = tk.Label(
             self.master, text="DAUST Face ID Access", font=("Arial", 34), padx=20, pady=20)
@@ -30,10 +37,13 @@ class FaceID:
             self.master, text=f"Enrolled users: {self.count}", font=("Arial", 16))
         self.count_label.pack(side=tk.TOP)
 
+        # Default path to face-id image
+        self.face_id = "./images/face-id.png"
+
         # Set up image and message
-        self.image = Image.open("./images/face-id.png")
+        self.image = Image.open(f"{self.face_id}")
         self.image = self.image.resize(
-            (500, 500), Image.LANCZOS)  # Resize image to 300x300
+            self.img_size, Image.LANCZOS)  # Resize image to 300x300
         self.image = ImageTk.PhotoImage(self.image)
         self.image_label = tk.Label(self.master, image=self.image)
         self.image_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
@@ -61,7 +71,11 @@ class FaceID:
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
 
+        # rsid_py authenticator instance
         self.f = FaceAuthenticator(PORT)
+
+        # Image lock
+        self.img_lock = Lock()
 
     def enroll(self):
         # Enroll function using FaceAuthenticator class
@@ -100,19 +114,51 @@ class FaceID:
         self.count = count
         self.count_label.config(text=f"Enrolled users: {count}")
 
+    def authenticate(self):
+        self.f.preview(False)
+        # status_msg = 'Detecting person...'
+        self.f.authenticate(on_result=lambda result: self.on_result(result, user_id=self.user_id_var.get()),
+                            on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
+        # add this code to capture and save the image
+        self.capture_image()
+
     def start_ultrasonic_detection(self):
         while True:
             time.sleep(0.5)
             distance = board.analog_read(T_PIN)
             if distance < 50:
-                self.f.preview(False)
-                # status_msg = 'Detecting person...'
-                self.f.authenticate(on_result=lambda result: self.on_result(result, user_id=self.user_id_var.get()),
-                                    on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
+                self.authenticate()
 
     def quit(self):
         # Add functionality for Quit button
         self.master.destroy()
+
+    def capture_image(self, image):
+        self.img_lock.acquire()
+        buffer = memoryview(image.get_buffer())
+        arr = np.asarray(buffer, dtype=np.uint8)
+        arr2d = arr.reshape((image.height, image.width, -1))
+        img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
+        img_scaled = cv2.resize(img_rgb, self.img_size)
+
+        # create captures folder if it doesn't exist
+        if not os.path.exists('captures'):
+            os.makedirs('captures')
+
+        # generate unique image filename
+        img_filename = f'captures/user.jpeg'
+
+        self.face_id = img_filename
+
+        # save image
+        cv2.imwrite(img_filename, img_scaled)
+
+        img_scaled = cv2.flip(img_scaled, 1)
+
+        # color = color_from_msg(status_msg)
+        # img_scaled = show_status(status_msg, img_scaled, color)
+
+        self.img_lock.release()
 
     def on_hint(self, hint):
         print(hint)
