@@ -62,14 +62,40 @@ class FaceID:
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
 
     def enroll(self):
-        # Enroll function using rsid_py library
-        with FaceAuthenticator(PORT) as f:
-            user_id = input("User id to enroll: ")
-            f.enroll(user_id=user_id, on_hint=self.on_hint, on_progress=self.on_progress,
-                     on_faces=self.on_faces, on_result=self.on_result)
+        # Create a popup window to get the user id input
+        popup_window = tk.Toplevel(self.master)
+        popup_window.title("Enter User ID")
+
+        # Create a label and entry for the user to input their user id
+        user_id_label = tk.Label(
+            popup_window, text="Enter User ID:", font=("Arial", 16))
+        user_id_label.pack(side=tk.TOP, padx=20, pady=20)
+        user_id_entry = tk.Entry(popup_window, font=("Arial", 16))
+        user_id_entry.pack(side=tk.TOP, padx=20, pady=(0, 20))
+
+        def enroll_user():
+            # Get the user id input from the entry widget
+            user_id = user_id_entry.get()
+
+            # Enroll function using rsid_py library
+            with FaceAuthenticator(PORT) as f:
+                user_id = input("User id to enroll: ")
+                f.enroll(user_id=user_id, on_hint=self.on_hint, on_progress=self.on_progress,
+                         on_faces=self.on_faces, on_result=self.on_result)
+
+            # Close the popup window
+            popup_window.destroy()
 
             # Update user count label
             self.update_count_label()
+
+        # Create an Enroll button to enroll the user
+        enroll_button = tk.Button(popup_window, text="Enroll", font=(
+            "Arial", 16), command=enroll_user)
+        enroll_button.pack(side=tk.TOP)
+
+        # Set the focus to the user id entry widget
+        user_id_entry.focus()
 
     def update_count_label(self):
         # Update the user count label
