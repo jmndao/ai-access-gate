@@ -180,7 +180,7 @@ class FaceID:
         # Open image
         self.image = Image.open(img_filename)
         self.image = ImageTk.PhotoImage(self.image)
-        self.image_label.configure(image=self.photo)
+        self.image_label.configure(image=self.image)
 
         self.face_id = img_filename
 
