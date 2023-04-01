@@ -13,6 +13,12 @@ from rsid_py import FaceAuthenticator
 
 
 PORT = '/dev/ttyACM0'
+ARDUINO_PORT = '/dev/ttyACM1'
+
+# Pin definition
+BOARD_PIN = 7
+E_PIN = 8  # Echo Pin (ultrasonic Sensor)
+T_PIN = 9  # Trigger Pin (ultrasonic Sensor)
 
 
 class FaceID:
@@ -77,6 +83,18 @@ class FaceID:
         # Image lock
         self.img_lock = Lock()
 
+        try:
+            from pymata4 import pymata4 as py4
+        except ImportError:
+            print('Failed importing pyfirmata. Please install it (pip install pyfirmata)')
+            exit(0)
+
+        # Define the board via pymata protocol
+        self.board = py4.Pymata4(ARDUINO_PORT)
+
+        self.board.set_pin_mode_digital_output(BOARD_PIN)
+        # self.board.set_pin_mode_digital_output(13) # Output for led
+
     def enroll(self):
         # Enroll function using FaceAuthenticator class
         popup = tk.Toplevel(self.master)
@@ -125,7 +143,7 @@ class FaceID:
     def start_ultrasonic_detection(self):
         while True:
             time.sleep(0.5)
-            distance = board.analog_read(T_PIN)
+            distance = self.board.analog_read(T_PIN)
             if distance < 50:
                 self.authenticate()
 
@@ -171,6 +189,12 @@ class FaceID:
 
     def on_result(self, result):
         print(result)
+
+    def gate_trigger(self):
+        self.board.digital_write(BOARD_PIN, 0)
+        time.sleep(1)
+        self.board.digital_write(BOARD_PIN, 1)
+        return
 
 
 if __name__ == "__main__":
