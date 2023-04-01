@@ -177,6 +177,11 @@ class FaceID:
         # generate unique image filename
         img_filename = f'captures/user.jpeg'
 
+        # Open image
+        self.image = Image.open(img_filename)
+        self.image = ImageTk.PhotoImage(self.image)
+        self.image_label.configure(image=self.photo)
+
         self.face_id = img_filename
 
         # save image
