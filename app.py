@@ -61,6 +61,8 @@ class FaceID:
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
 
+        self.f = FaceAuthenticator(PORT)
+
     def enroll(self):
         # Enroll function using FaceAuthenticator class
         popup = tk.Toplevel(self.master)
@@ -80,9 +82,9 @@ class FaceID:
 
     def do_enroll(self, popup, user_id):
         # Enroll user using FaceAuthenticator class
-        face_authenticator = FaceAuthenticator()
+        # face_authenticator = FaceAuthenticator()
         try:
-            face_authenticator.enroll(user_id=user_id)
+            self.f.enroll(user_id=user_id)
             popup.destroy()
             self.update_count_label()
         except Exception as e:
@@ -99,18 +101,13 @@ class FaceID:
         self.count_label.config(text=f"Enrolled users: {count}")
 
     def start_ultrasonic_detection(self):
-        global status_msg
-        global face_authenticator
-        global detected_faces
         while True:
-            if detected_faces:
-                return
             time.sleep(0.5)
             distance = board.analog_read(T_PIN)
             if distance < 50:
-                face_authenticator.preview(False)
-                status_msg = 'Detecting person...'
-                face_authenticator.authenticate(
+                self.f.preview(False)
+                # status_msg = 'Detecting person...'
+                self.f.authenticate(
                     on_result=self.on_result, on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
 
     def quit(self):
