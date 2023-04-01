@@ -47,4 +47,4 @@ __pycache__/
 #image_files
 *.jpg
 *.jpeg
-*.png
+# *.png
