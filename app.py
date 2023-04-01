@@ -9,7 +9,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 import cv2
-from rsid_py import FaceAuthenticator, AuthenticateStatus
+from rsid_py import FaceAuthenticator, AuthenticateStatus, PreviewConfig, Preview
 
 
 PORT = '/dev/ttyACM0'
@@ -136,8 +136,14 @@ class FaceID:
         # self.f.preview(False)
         # status_msg = 'Detecting person...'
         self.f.authenticate(on_result=self.on_result, on_faces=self.on_faces)
+
         # add this code to capture and save the image
-        self.capture_image()
+        preview_cfg = PreviewConfig()
+        preview_cfg.camera_number = 0
+        p = Preview(preview_cfg)
+        p.start(self.capture_image)
+        time.sleep(0.5)
+        p.stop()
 
         if AuthenticateStatus.Success:
             self.gate_trigger()
