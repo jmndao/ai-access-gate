@@ -133,10 +133,9 @@ class FaceID:
         self.count_label.config(text=f"Enrolled users: {count}")
 
     def authenticate(self):
-        self.f.preview(False)
+        # self.f.preview(False)
         # status_msg = 'Detecting person...'
-        self.f.authenticate(on_result=lambda result: self.on_result(result, user_id=self.user_id_var.get()),
-                            on_progress=self.on_progress, on_hint=self.on_hint, on_faces=self.on_faces)
+        self.f.authenticate(on_result=self.on_result, on_faces=self.on_faces)
         # add this code to capture and save the image
         self.capture_image()
 
@@ -146,9 +145,10 @@ class FaceID:
     def start_ultrasonic_detection(self):
         self.board.set_pin_mode_sonar(T_PIN, E_PIN)
         while True:
-            time.sleep(0.5)
+            time.sleep(0.05)
 
             distance = int(self.board.sonar_read(T_PIN)[0])
+            print(distance)
             if distance >= 10 and distance <= 50:
                 self.authenticate()
 
@@ -192,7 +192,7 @@ class FaceID:
     def on_faces(self, faces, timestamp):
         print(faces)
 
-    def on_result(self, result):
+    def on_result(self, result, user_id):
         print(result)
 
     def gate_trigger(self):
