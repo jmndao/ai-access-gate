@@ -144,10 +144,12 @@ class FaceID:
             self.gate_trigger()
 
     def start_ultrasonic_detection(self):
+        self.board.set_pin_mode_sonar(T_PIN, E_PIN)
         while True:
             time.sleep(0.5)
-            distance = self.board.analog_read(T_PIN)
-            if distance < 50:
+
+            distance = int(self.board.sonar_read(T_PIN)[0])
+            if distance >= 10 and distance <= 50:
                 self.authenticate()
 
     def quit(self):
