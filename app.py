@@ -175,7 +175,6 @@ class FaceID:
 
     def quit(self):
         # Release resources and stop threads
-        self.f.close()
         self.board.shutdown()
         # Add functionality for Quit button
         self.master.destroy()
