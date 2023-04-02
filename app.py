@@ -261,10 +261,10 @@ class FaceID:
         self.img_lock.release()
 
     def on_hint(self, hint):
-        print(hint)
+        pass
 
     def on_progress(self, progress):
-        print(progress)
+        pass
 
     def on_faces(self, faces, timestamp):
         self.detected_faces = [{'face': f} for f in faces]
