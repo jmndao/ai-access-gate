@@ -17,11 +17,11 @@ class FirebaseAdminDB:
         self._db = firestore.client()
         # self._bucket = storage.bucket()
 
-    # async def upload_image(self, file_path, image_name):
-    #     blob = self._bucket.blob(image_name)
-    #     blob.upload_from_filename(file_path)
-    #     blob.make_public()
-    #     return blob.public_url
+    async def upload_image(self, file_path, image_name):
+        blob = self._bucket.blob(image_name)
+        blob.upload_from_filename(file_path)
+        blob.make_public()
+        return blob.public_url
 
     async def save_data(self, user_id, status, current_time):
         data = {

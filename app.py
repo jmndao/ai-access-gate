@@ -250,33 +250,29 @@ class FaceID:
         arr2d = arr.reshape((image.height, image.width, -1))
         img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
 
-        # for f in self.detected_faces:
-            # self.show_face(f, img_rgb)
+        for f in self.detected_faces:
+            self.show_face(f, img_rgb)
 
         # Extract corresponding color
         color = self.color_from_msg()
 
-        img_rgb = cv2.flip(img_rgb, 1)
-
+        img_rgb = self.show_status(image=img_scaled, color=color)
         img_scaled = cv2.resize(img_rgb, self.img_size)
-        img_n = self.show_status(image=img_scaled, color=color)
 
 
         # create captures folder if it doesn't exist
         if not os.path.exists('captures'):
             os.makedirs('captures')
 
-        img_filename = f'captures/user.jpeg'
-
         # Open image
-        self.image = Image.open(img_filename)
+        self.image = Image.open(self.img_filename)
         self.image = ImageTk.PhotoImage(self.image)
         self.image_label.configure(image=self.image)
 
-        self.face_id = img_filename
+        self.face_id = self.img_filename
 
         # save image
-        cv2.imwrite(img_filename, img_n)
+        cv2.imwrite(self.img_filename, img_scaled)
 
         self.img_lock.release()
 
