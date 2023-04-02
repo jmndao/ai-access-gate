@@ -49,4 +49,5 @@ __pycache__/
 *.jpeg
 # *.png
 
-# serviceAccount.json
+serviceAccount.json
+creds.json

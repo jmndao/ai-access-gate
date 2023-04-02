@@ -103,7 +103,7 @@ class FaceID:
         self.img_filename = f'captures/user.jpeg'
 
         # Initialize firebase
-        self.fb = FirebaseAdminDB(cred_file_path="./serviceAccount.json")
+        self.fb = FirebaseAdminDB(cred_file_path="./creds.json")
 
         try:
             from pymata4 import pymata4 as py4
@@ -240,7 +240,7 @@ class FaceID:
         end_point = (x + w, y + h)
         color = self.color_from_msg()
         thickness = 2
-        return cv2.rectangle(image, start_point, end_point, color, thickness)
+        cv2.rectangle(image, start_point, end_point, color, thickness)
 
     def capture_image(self, image):
         self.img_lock.acquire()
@@ -255,9 +255,9 @@ class FaceID:
         # Extract corresponding color
         color = self.color_from_msg()
 
-        img_rgb = self.show_status(image=img_rgb, color=color)
-
         img_scaled = cv2.resize(img_rgb, self.img_size)
+
+        img_rgb = self.show_status(image=img_rgb, color=color)
 
         # create captures folder if it doesn't exist
         if not os.path.exists('captures'):
@@ -292,7 +292,7 @@ class FaceID:
 
             image_url = self.fb.upload_image(
                 self.img_filename, f'{user_id}.jpg')
-            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Success,
+            self.fb.save_data(user_id=user_id, status="Success",
                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
 
             self.gate_trigger()
@@ -301,14 +301,14 @@ class FaceID:
 
             image_url = self.fb.upload_image(
                 self.img_filename, f'{user_id}.jpg')
-            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Forbidden,
+            self.fb.save_data(user_id=user_id, status="Forbidden",
                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
 
         else:
             self.status_msg = "Please correct your posture"
 
             image_url = "No Face"
-            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Success,
+            self.fb.save_data(user_id=user_id, status="Bad Posture",
                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
 
     def gate_trigger(self):
