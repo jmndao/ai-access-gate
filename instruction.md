@@ -15,6 +15,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable app.service
 ```
 This will create a symbolic link to app service file in the "/etc/systemd/system/multi-user.target.wants/" directory.
+
 ---
 * Reboot to test if the program starts automatically at boot time:
 ```
