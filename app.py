@@ -15,6 +15,8 @@ from PIL import Image, ImageTk
 import cv2
 from rsid_py import FaceAuthenticator, AuthenticateStatus, PreviewConfig, Preview
 
+from db import FirebaseAdminDB
+
 
 config = cfg.ConfigParser()
 # Load the config
@@ -98,6 +100,10 @@ class FaceID:
 
         # Status msg
         self.status_msg = ""
+        self.img_filename = f'captures/user.jpeg'
+
+        # Initialize firebase
+        self.fb = FirebaseAdminDB(cred_file_path="./serviceAccount.json")
 
         try:
             from pymata4 import pymata4 as py4
@@ -257,18 +263,15 @@ class FaceID:
         if not os.path.exists('captures'):
             os.makedirs('captures')
 
-        # generate unique image filename
-        img_filename = f'captures/user.jpeg'
-
         # Open image
-        self.image = Image.open(img_filename)
+        self.image = Image.open(self.img_filename)
         self.image = ImageTk.PhotoImage(self.image)
         self.image_label.configure(image=self.image)
 
-        self.face_id = img_filename
+        self.face_id = self.img_filename
 
         # save image
-        cv2.imwrite(img_filename, img_scaled)
+        cv2.imwrite(self.img_filename, img_scaled)
 
         img_scaled = cv2.flip(img_scaled, 1)
 
@@ -284,14 +287,29 @@ class FaceID:
         self.detected_faces = [{'face': f} for f in faces]
 
     def on_result(self, result, user_id):
-        print(result)
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
+
+            image_url = self.fb.upload_image(
+                self.img_filename, f'{user_id}.jpg')
+            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Success,
+                              current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
+
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
+
+            image_url = self.fb.upload_image(
+                self.img_filename, f'{user_id}.jpg')
+            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Forbidden,
+                              current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
+
         else:
             self.status_msg = "Please correct your posture"
+
+            image_url = "No Face"
+            self.fb.save_data(user_id=user_id, status=AuthenticateStatus.Success,
+                              current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url)
 
     def gate_trigger(self):
         # self.board.digital_write(BOARD_PIN, 0)
@@ -299,25 +317,6 @@ class FaceID:
         # self.board.digital_write(BOARD_PIN, 1)
         # return
         print("Opening...")
-
-    # Improvements
-    # def authenticate(self):
-    #     # Authenticate user using FaceAuthenticator class
-    #     def authenticate_thread():
-    #         self.f.authenticate(status_callback=self.authenticate_status_callback)
-
-    #     threading.Thread(target=authenticate_thread).start()
-
-    # def authenticate_status_callback(self, status):
-    #     if status == AuthenticateStatus.SUCCESS:
-    #         # Access granted
-    #         self.open_door()
-    #     elif status == AuthenticateStatus.ERROR:
-    #         # Authentication error
-    #         self.show_message("Authentication failed.")
-    #     elif status == AuthenticateStatus.USER_UNKNOWN:
-    #         # Unknown user
-    #         self.show_message("User not recognized.")
 
 
 if __name__ == "__main__":
