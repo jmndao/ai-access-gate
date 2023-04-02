@@ -86,6 +86,7 @@ class FaceID:
 
         # rsid_py authenticator instance
         self.f = FaceAuthenticator(CAM_PORT)
+        self.detected_faces = []
 
         # Set up count label
         self.count_label = tk.Label(
@@ -215,8 +216,25 @@ class FaceID:
         # align to center
         text_x = int((image_w - msg_w) / 2)
         text_y = rect_y + msg_h + padding
-        msg = self.status_msg.replace('Status.', ' ')
-        return cv2.putText(image, self.status_msg, (text_x, text_y), font, font_scale, color, thickness, cv2.LINE_AA)
+        cv2.putText(image, self.status_msg, (text_x, text_y), font,
+                    font_scale, color, thickness, cv2.LINE_AA)
+
+    def show_face(self, face, image):
+        # scale rets from 1080p
+        f = face['face']
+
+        scale_x = image.shape[1] / 1080.0
+        scale_y = image.shape[0] / 1920.0
+        x = int(f.x * scale_x)
+        y = int(f.y * scale_y)
+        w = int(f.w * scale_y)
+        h = int(f.h * scale_y)
+
+        start_point = (x, y)
+        end_point = (x + w, y + h)
+        color = self.color_from_msg()
+        thickness = 2
+        return cv2.rectangle(image, start_point, end_point, color, thickness)
 
     def capture_image(self, image):
         self.img_lock.acquire()
@@ -224,6 +242,9 @@ class FaceID:
         arr = np.asarray(buffer, dtype=np.uint8)
         arr2d = arr.reshape((image.height, image.width, -1))
         img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
+
+        for f in self.detected_faces:
+            self.show_face(f, img_rgb)
 
         # Extract corresponding color
         color = self.color_from_msg()
@@ -260,7 +281,7 @@ class FaceID:
         print(progress)
 
     def on_faces(self, faces, timestamp):
-        print(faces)
+        self.detected_faces = [{'face': f} for f in faces]
 
     def on_result(self, result, user_id):
         print(result)
