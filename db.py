@@ -1,3 +1,4 @@
+import asyncio
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore, storage
@@ -16,17 +17,17 @@ class FirebaseAdminDB:
         self._db = firestore.client()
         self._bucket = storage.bucket()
 
-    def upload_image(self, file_path, image_name):
+    async def upload_image(self, file_path, image_name):
         blob = self._bucket.blob(image_name)
-        blob.upload_from_filename(file_path)
+        await blob.upload_from_filename(file_path)
         blob.make_public()
         return blob.public_url
 
-    def save_data(self, user_id, status, current_time, image_url):
+    async def save_data(self, user_id, status, current_time, image_url):
         data = {
             'user_id': user_id,
             'status': status,
             'current_time': current_time,
             'image_url': image_url
         }
-        self._db.collection('face_ids').add(data)
+        await self._db.collection('face_ids').add(data)
