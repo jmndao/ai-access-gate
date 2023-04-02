@@ -79,13 +79,13 @@ class FaceID:
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
         # Remove all users Button
-        self.remove_all_image = Image.open("./images/remove_all.png")
-        self.remove_all_image = self.remove_all_image.resize(
-            (90, 90), Image.LANCZOS)  # Resize image to 30x30
-        self.remove_all_image = ImageTk.PhotoImage(self.remove_all_image)
-        self.remove_all_button = tk.Button(
-            self.button_frame, image=self.remove_all_image, command=self.confirm_remove_all_users, bd=0)
-        self.remove_all_button.pack(side=tk.LEFT, padx=(10, 0))
+        # self.remove_all_image = Image.open("./images/remove_all.png")
+        # self.remove_all_image = self.remove_all_image.resize(
+        #     (90, 90), Image.LANCZOS)  # Resize image to 30x30
+        # self.remove_all_image = ImageTk.PhotoImage(self.remove_all_image)
+        # self.remove_all_button = tk.Button(
+        #     self.button_frame, image=self.remove_all_image, command=self.confirm_remove_all_users, bd=0)
+        # self.remove_all_button.pack(side=tk.LEFT, padx=(10, 0))
 
         # rsid_py authenticator instance
         self.f = FaceAuthenticator(CAM_PORT)
@@ -118,37 +118,19 @@ class FaceID:
         self.board = py4.Pymata4(ARDUINO_PORT)
 
         self.board.set_pin_mode_digital_output(GATE_PIN)
-        # self.board.set_pin_mode_digital_output(13) # Output for led
 
     def enroll(self):
         # Enroll function using FaceAuthenticator class
-        popup = tk.Toplevel(self.master)
-        popup.title("Enroll User")
-        popup.geometry("300x150")
+        self.f.enroll(on_hint=self.on_hint, on_progress=self.on_progress, on_result=self.on_enroll_result,
+                      on_faces=self.on_faces, user_id=f"user_{int(time.time() / 1000)}")
+        self.update_count_label()
 
-        # Set up user id label and entry field
-        user_id_label = tk.Label(popup, text="Enter User ID:")
-        user_id_label.pack()
-        user_id_var = tk.StringVar()
-        user_id_entry = tk.Entry(popup, textvariable=user_id_var)
-        user_id_entry.pack()
-
-        # Set up enroll button
-        enroll_button = tk.Button(
-            popup, text="Enroll", command=lambda: self.do_enroll(popup, user_id_var.get()))
-        enroll_button.pack()
-
-    def do_enroll(self, popup, user_id):
-        # Enroll user using FaceAuthenticator class
-        # face_authenticator = FaceAuthenticator()
-        try:
-            self.f.enroll(user_id=user_id)
-            popup.destroy()
-            self.update_count_label()
-        except Exception as e:
-            # Display error message if enrollment fails
-            error_label = tk.Label(popup, text=str(e))
-            error_label.pack()
+    def on_enroll_result(self, result, user_id):
+        if result == AuthenticateStatus.Success:
+            messagebox.showinfo("Enrollment Successful",
+                                "You've been enrolled successfully")
+        else:
+            messagebox.showerror("Enrollment Failed", "Enrollment has failed")
 
     def update_count_label(self):
         # Update the user count label
@@ -288,11 +270,12 @@ class FaceID:
         self.detected_faces = [{'face': f} for f in faces]
 
     def on_result(self, result, user_id):
+        print(result)
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
-            # ft_image_url = asyncio.run(self.fb.upload_image(
-            #     self.img_filename, f'{user_id}.jpg'))
+            ft_image_url = asyncio.run(self.fb.upload_image(
+                self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Success",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))

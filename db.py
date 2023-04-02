@@ -1,3 +1,4 @@
+import time
 import asyncio
 import firebase_admin
 from firebase_admin import credentials
@@ -15,7 +16,7 @@ class FirebaseAdminDB:
             self._cred, {'storageBucket': "face-id-turnstile-tripod.appspot.com"})
         # instanciate db
         self._db = firestore.client()
-        # self._bucket = storage.bucket()
+        self._bucket = storage.bucket()
 
     async def upload_image(self, file_path, image_name):
         blob = self._bucket.blob(image_name)
@@ -23,10 +24,11 @@ class FirebaseAdminDB:
         blob.make_public()
         return blob.public_url
 
-    async def save_data(self, user_id, status, current_time):
+    async def save_data(self, status, current_time, image_url=None):
         data = {
-            'user_id': user_id,
+            'user_id': f"user_{int(time.time() / 1000)}",
             'status': status,
-            'current_time': current_time
+            'current_time': current_time,
+            'image_url': image_url
         }
         self._db.collection('face_ids').add(data)
