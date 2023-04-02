@@ -106,6 +106,8 @@ class FaceID:
         # Initialize firebase
         self.fb = FirebaseAdminDB(cred_file_path="./creds.json")
 
+        self.update_count_label()
+
         try:
             from pymata4 import pymata4 as py4
         except ImportError:
@@ -256,7 +258,7 @@ class FaceID:
         # Extract corresponding color
         color = self.color_from_msg()
 
-        img_rgb = self.show_status(image=img_scaled, color=color)
+        img_rgb = self.show_status(image=img_rgb, color=color)
         img_scaled = cv2.resize(img_rgb, self.img_size)
 
 
