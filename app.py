@@ -196,6 +196,8 @@ class FaceID:
     def remove_all_users(self):
         # perform the action of removing all users here
         self.f.remove_all_users()
+        self.update_count_label()
+
 
     def color_from_msg(self):
         if 'successful' in self.status_msg:
