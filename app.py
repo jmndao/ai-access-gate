@@ -23,12 +23,12 @@ config = cfg.ConfigParser()
 # Load the config
 config.read("config.ini")
 
-CAM_PORT = config.get("PORTS", "CAM_PORT")
-ARDUINO_PORT = config.get("PORTS", "ARDUINO_PORT")
+CAM_PORT = config.get("PORTS", "CAM")
+ARDUINO_PORT = config.get("PORTS", "ARDUINO")
 # Pin definition
-BOARD_PIN = 7
-E_PIN = 8  # Echo Pin (ultrasonic Sensor)
-T_PIN = 9  # Trigger Pin (ultrasonic Sensor)
+GATE_PIN = int(config.get("PINS", "GATE"))
+E_PIN = int(config.get("PINS", "ECHO"))  # Echo Pin (ultrasonic Sensor)
+T_PIN = int(config.get("PINS", "TRIGGER"))  # Trigger Pin (ultrasonic Sensor)
 
 
 class FaceID:
@@ -117,7 +117,7 @@ class FaceID:
         # Define the board via pymata protocol
         self.board = py4.Pymata4(ARDUINO_PORT)
 
-        self.board.set_pin_mode_digital_output(BOARD_PIN)
+        self.board.set_pin_mode_digital_output(GATE_PIN)
         # self.board.set_pin_mode_digital_output(13) # Output for led
 
     def enroll(self):
@@ -198,7 +198,6 @@ class FaceID:
         self.f.remove_all_users()
         self.update_count_label()
 
-
     def color_from_msg(self):
         if 'successful' in self.status_msg:
             return (0x3c, 0xff, 0x3c)
@@ -228,7 +227,7 @@ class FaceID:
         text_x = int((image_w - msg_w) / 2)
         text_y = rect_y + msg_h + padding
         return cv2.putText(image, self.status_msg, (text_x, text_y), font,
-                    font_scale, color, thickness, cv2.LINE_AA)
+                           font_scale, color, thickness, cv2.LINE_AA)
 
     def show_face(self, face, image):
         # scale rets from 1080p
@@ -262,7 +261,6 @@ class FaceID:
 
         img_rgb = self.show_status(image=img_rgb, color=color)
         img_scaled = cv2.resize(img_rgb, self.img_size)
-
 
         # create captures folder if it doesn't exist
         if not os.path.exists('captures'):
@@ -316,11 +314,10 @@ class FaceID:
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
     def gate_trigger(self):
-        # self.board.digital_write(BOARD_PIN, 0)
-        # time.sleep(1)
-        # self.board.digital_write(BOARD_PIN, 1)
-        # return
-        print("Opening...")
+        self.board.digital_write(GATE_PIN, 0)
+        time.sleep(1)
+        self.board.digital_write(GATE_PIN, 1)
+        return
 
 
 if __name__ == "__main__":
