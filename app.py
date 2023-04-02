@@ -93,7 +93,7 @@ class FaceID:
 
         # Set up count label
         self.count_label = tk.Label(
-            self.master, text=f"Enrolled users: {len(self.f.query_user_ids())}", font=("Arial", 16))
+            self.master, text=f"Enrolled users: {0}", font=("Arial", 16))
         self.count_label.pack(side=tk.TOP)
 
         # Image lock
