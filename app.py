@@ -6,15 +6,21 @@ from threading import Lock
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
+
+import configparser as cfg
+
 from PIL import Image, ImageTk
 
 import cv2
 from rsid_py import FaceAuthenticator, AuthenticateStatus, PreviewConfig, Preview
 
 
-PORT = '/dev/ttyACM0'
-ARDUINO_PORT = '/dev/ttyACM1'
+config = cfg.ConfigParser()
+# Load the config
+config.read("config.ini")
 
+CAM_PORT = config.get("PORTS", "CAM_PORT")
+ARDUINO_PORT = config.get("PORTS", "ARDUINO_PORT")
 # Pin definition
 BOARD_PIN = 7
 E_PIN = 8  # Echo Pin (ultrasonic Sensor)
@@ -52,16 +58,6 @@ class FaceID:
             self.img_size, Image.LANCZOS)  # Resize image to 300x300
         self.image = ImageTk.PhotoImage(self.image)
 
-        # Improvements
-        # Create a circular mask
-        # mask = Image.new("L", self.img_size, 0)
-        # draw = ImageDraw.Draw(mask)
-        # draw.ellipse((0, 0) + self.img_size, fill=255)
-
-        # # Apply the mask to the image
-        # self.image.putalpha(mask)
-
-
         self.image_label = tk.Label(self.master, image=self.image)
         self.image_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
@@ -86,7 +82,7 @@ class FaceID:
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
 
         # rsid_py authenticator instance
-        self.f = FaceAuthenticator(PORT)
+        self.f = FaceAuthenticator(CAM_PORT)
 
         # Image lock
         self.img_lock = Lock()
@@ -156,14 +152,6 @@ class FaceID:
         time.sleep(0.5)
         p.stop()
 
-        if AuthenticateStatus.Success:
-            self.status_msg = "Authentication successful"
-            self.gate_trigger()
-        elif AuthenticateStatus.Failed:
-            self.status_msg = "Authentication failed"
-        else:
-            self.status_msg = "Please correct your posture"
-
     def start_ultrasonic_detection(self):
         self.board.set_pin_mode_sonar(T_PIN, E_PIN)
         while True:
@@ -178,6 +166,7 @@ class FaceID:
         self.board.shutdown()
         # Add functionality for Quit button
         self.master.destroy()
+        os._exit(1)
 
     def color_from_msg(self):
         if 'successful' in self.status_msg:
@@ -188,7 +177,7 @@ class FaceID:
 
     def show_status(self, image, color):
         font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 1.4
+        font_scale = 1.5
         thickness = 3
         padding = 20
 
@@ -243,10 +232,8 @@ class FaceID:
 
         img_scaled = cv2.flip(img_scaled, 1)
 
-        # color = color_from_msg(status_msg)
-        # img_scaled = show_status(status_msg, img_scaled, color)
-
         self.img_lock.release()
+        
 
     def on_hint(self, hint):
         print(hint)
@@ -259,6 +246,13 @@ class FaceID:
 
     def on_result(self, result, user_id):
         print(result)
+        if result == AuthenticateStatus.Success:
+            self.status_msg = "Authentication successful"
+            self.gate_trigger()
+        elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
+            self.status_msg = "Authentication failed"
+        else:
+            self.status_msg = "Please correct your posture"
 
     def gate_trigger(self):
         # self.board.digital_write(BOARD_PIN, 0)
