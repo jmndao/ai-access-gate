@@ -6,6 +6,7 @@ from threading import Lock
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 
 import configparser as cfg
 
@@ -80,6 +81,14 @@ class FaceID:
         self.enroll_button = tk.Button(
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
+        # Remove all users Button
+        self.remove_all_image = Image.open("./images/remove_all.png")
+        self.remove_all_image = self.remove_all_image.resize(
+            (90, 90), Image.LANCZOS)  # Resize image to 30x30
+        self.remove_all_image = ImageTk.PhotoImage(self.remove_all_image)
+        self.remove_all_button = tk.Button(
+            self.button_frame, image=self.remove_all_image, command=self.remove_all_users, bd=0)
+        self.remove_all_button.pack(side=tk.LEFT, padx=(10, 0))
 
         # rsid_py authenticator instance
         self.f = FaceAuthenticator(CAM_PORT)
@@ -168,6 +177,19 @@ class FaceID:
         self.master.destroy()
         os._exit(1)
 
+    def confirm_remove_all_users(self):
+        # create a message box to confirm the action
+        response = messagebox.askyesno(
+            "Confirm", "Are you sure you want to remove all users?")
+
+        if response == 1:
+            # if the user confirms, perform the action
+            self.remove_all_users()
+
+    def remove_all_users(self):
+        # perform the action of removing all users here
+        self.f.remove_all_users()
+
     def color_from_msg(self):
         if 'successful' in self.status_msg:
             return (0x3c, 0xff, 0x3c)
@@ -233,7 +255,6 @@ class FaceID:
         img_scaled = cv2.flip(img_scaled, 1)
 
         self.img_lock.release()
-        
 
     def on_hint(self, hint):
         print(hint)
@@ -261,14 +282,14 @@ class FaceID:
         # return
         print("Opening...")
 
-    ### Improvements
+    # Improvements
     # def authenticate(self):
     #     # Authenticate user using FaceAuthenticator class
     #     def authenticate_thread():
     #         self.f.authenticate(status_callback=self.authenticate_status_callback)
 
     #     threading.Thread(target=authenticate_thread).start()
-        
+
     # def authenticate_status_callback(self, status):
     #     if status == AuthenticateStatus.SUCCESS:
     #         # Access granted
@@ -279,7 +300,6 @@ class FaceID:
     #     elif status == AuthenticateStatus.USER_UNKNOWN:
     #         # Unknown user
     #         self.show_message("User not recognized.")
-
 
 
 if __name__ == "__main__":
