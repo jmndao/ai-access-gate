@@ -44,12 +44,6 @@ class FaceID:
             self.master, text="DAUST Face ID Access", font=("Arial", 34), padx=20, pady=20)
         self.header_label.pack(side=tk.TOP)
 
-        # Set up count label
-        self.count = 0
-        self.count_label = tk.Label(
-            self.master, text=f"Enrolled users: {self.count}", font=("Arial", 16))
-        self.count_label.pack(side=tk.TOP)
-
         # Default path to face-id image
         self.face_id = "./images/face-id.png"
 
@@ -87,11 +81,16 @@ class FaceID:
             (90, 90), Image.LANCZOS)  # Resize image to 30x30
         self.remove_all_image = ImageTk.PhotoImage(self.remove_all_image)
         self.remove_all_button = tk.Button(
-            self.button_frame, image=self.remove_all_image, command=self.remove_all_users, bd=0)
+            self.button_frame, image=self.remove_all_image, command=self.confirm_remove_all_users, bd=0)
         self.remove_all_button.pack(side=tk.LEFT, padx=(10, 0))
 
         # rsid_py authenticator instance
         self.f = FaceAuthenticator(CAM_PORT)
+
+        # Set up count label
+        self.count_label = tk.Label(
+            self.master, text=f"Enrolled users: {len(self.f.query_user_ids())}", font=("Arial", 16))
+        self.count_label.pack(side=tk.TOP)
 
         # Image lock
         self.img_lock = Lock()
@@ -143,10 +142,8 @@ class FaceID:
 
     def update_count_label(self):
         # Update the user count label
-        count = len(self.f.query_user_ids())
-        # Update count
-        self.count = count
-        self.count_label.config(text=f"Enrolled users: {count}")
+        self.count_label.config(
+            text=f"Enrolled users: {len(self.f.query_user_ids())}")
 
     def authenticate(self):
         # self.f.preview(False)
