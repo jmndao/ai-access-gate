@@ -223,7 +223,7 @@ class FaceID:
         # align to center
         text_x = int((image_w - msg_w) / 2)
         text_y = rect_y + msg_h + padding
-        cv2.putText(image, self.status_msg, (text_x, text_y), font,
+        return cv2.putText(image, self.status_msg, (text_x, text_y), font,
                     font_scale, color, thickness, cv2.LINE_AA)
 
     def show_face(self, face, image):
@@ -250,31 +250,33 @@ class FaceID:
         arr2d = arr.reshape((image.height, image.width, -1))
         img_rgb = cv2.cvtColor(arr2d, cv2.COLOR_BGR2RGB)
 
-        for f in self.detected_faces:
-            self.show_face(f, img_rgb)
+        # for f in self.detected_faces:
+            # self.show_face(f, img_rgb)
 
         # Extract corresponding color
         color = self.color_from_msg()
 
-        img_scaled = cv2.resize(img_rgb, self.img_size)
+        img_rgb = cv2.flip(img_rgb, 1)
 
-        img_rgb = self.show_status(image=img_rgb, color=color)
+        img_scaled = cv2.resize(img_rgb, self.img_size)
+        img_n = self.show_status(image=img_scaled, color=color)
+
 
         # create captures folder if it doesn't exist
         if not os.path.exists('captures'):
             os.makedirs('captures')
 
+        img_filename = f'captures/user.jpeg'
+
         # Open image
-        self.image = Image.open(self.img_filename)
+        self.image = Image.open(img_filename)
         self.image = ImageTk.PhotoImage(self.image)
         self.image_label.configure(image=self.image)
 
-        self.face_id = self.img_filename
+        self.face_id = img_filename
 
         # save image
-        cv2.imwrite(self.img_filename, img_scaled)
-
-        img_scaled = cv2.flip(img_scaled, 1)
+        cv2.imwrite(img_filename, img_n)
 
         self.img_lock.release()
 
@@ -291,28 +293,27 @@ class FaceID:
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
-            ft_image_url = asyncio.run(self.fb.upload_image(
-                self.img_filename, f'{user_id}.jpg'))
+            # ft_image_url = asyncio.run(self.fb.upload_image(
+            #     self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Success",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url))
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
-            ft_image_url = asyncio.run(self.fb.upload_image(
-                self.img_filename, f'{user_id}.jpg'))
+            # ft_image_url = asyncio.run(self.fb.upload_image(
+            #     self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url))
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
         else:
             self.status_msg = "Please correct your posture"
 
-            image_url = "No Face"
             asyncio.run(self.fb.save_data(user_id=user_id, status="Bad Posture",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url))
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
     def gate_trigger(self):
         # self.board.digital_write(BOARD_PIN, 0)
