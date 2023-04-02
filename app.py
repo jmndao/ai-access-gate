@@ -291,28 +291,28 @@ class FaceID:
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
-            ft_image_url = asyncio.run_coroutine_threadsafe(self.fb.upload_image(
-                self.img_filename, f'{user_id}.jpg'), loop=asyncio.get_event_loop())
+            ft_image_url = asyncio.run(self.fb.upload_image(
+                self.img_filename, f'{user_id}.jpg'))
 
-            asyncio.run_coroutine_threadsafe(self.fb.save_data(user_id=user_id, status="Success",
-                                                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()), loop=asyncio.get_event_loop())
+            asyncio.run(self.fb.save_data(user_id=user_id, status="Success",
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()))
 
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
-            ft_image_url = asyncio.run_coroutine_threadsafe(self.fb.upload_image(
-                self.img_filename, f'{user_id}.jpg'), loop=asyncio.get_event_loop())
+            ft_image_url = asyncio.run(self.fb.upload_image(
+                self.img_filename, f'{user_id}.jpg'))
 
-            asyncio.run_coroutine_threadsafe(self.fb.save_data(user_id=user_id, status="Forbidden",
-                                                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()), loop=asyncio.get_event_loop())
+            asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()))
 
         else:
             self.status_msg = "Please correct your posture"
 
             image_url = "No Face"
-            asyncio.run_coroutine_threadsafe(self.fb.save_data(user_id=user_id, status="Bad Posture",
-                                                               current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url), loop=asyncio.get_event_loop())
+            asyncio.run(self.fb.save_data(user_id=user_id, status="Bad Posture",
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=image_url))
 
     def gate_trigger(self):
         # self.board.digital_write(BOARD_PIN, 0)
