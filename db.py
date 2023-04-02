@@ -19,7 +19,7 @@ class FirebaseAdminDB:
 
     async def upload_image(self, file_path, image_name):
         blob = self._bucket.blob(image_name)
-        await blob.upload_from_filename(file_path)
+        blob.upload_from_filename(file_path)
         blob.make_public()
         return blob.public_url
 
@@ -30,4 +30,4 @@ class FirebaseAdminDB:
             'current_time': current_time,
             'image_url': image_url
         }
-        await self._db.collection('face_ids').add(data)
+        self._db.collection('face_ids').add(data)

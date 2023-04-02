@@ -295,7 +295,7 @@ class FaceID:
                 self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Success",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()))
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url))
 
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
@@ -305,7 +305,7 @@ class FaceID:
                 self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url.result()))
+                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S"), image_url=ft_image_url))
 
         else:
             self.status_msg = "Please correct your posture"
