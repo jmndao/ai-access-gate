@@ -1,6 +1,7 @@
 import os
 import threading
 import tkinter as tk
+from tkinter import messagebox
 from app import FaceID
 
 
@@ -10,8 +11,9 @@ try:
     os.system(
         "sudo ln -s /dev/serial/by-id/usb-Intel_Intel_F450_00.00.01-if02 /dev/cam")
 except Exception as e:
-    print("Error at port linking: ", e)
-    pass
+    error_message = f"An error occurred: {str(e)}"
+    messagebox.showerror(title="Error", message=error_message)
+
 
 # Create the Tkinter app
 root = tk.Tk()
