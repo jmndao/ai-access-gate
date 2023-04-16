@@ -314,3 +314,25 @@ class FaceID:
             time.sleep(0.5)  # Wait for 0.5 seconds
             self.red_led.digital_write(0)  # Turn off LED
             time.sleep(0.5)  # Wait for 0.5 seconds
+
+
+if __name__ == "__main__":
+
+    # Pre-run the bash script to set up the port links
+    try:
+        os.system(
+            "sudo ln -s /dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_751303038353512032E0-if00 /dev/arduino")
+        os.system(
+            "sudo ln -s /dev/serial/by-id/usb-Intel_Intel_F450_00.00.01-if02 /dev/cam")
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        messagebox.showerror(title="Error", message=error_message)
+
+    root = tk.Tk()
+    app = FaceID(root)
+
+    # Start ultrasonic detection thread
+    ultrasonic_thread = threading.Thread(target=app.start_ultrasonic_detection)
+    ultrasonic_thread.start()
+
+    root.mainloop()
