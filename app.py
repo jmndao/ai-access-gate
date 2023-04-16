@@ -27,6 +27,10 @@ CAM_PORT = config.get("PORTS", "CAM")
 ARDUINO_PORT = config.get("PORTS", "ARDUINO")
 # Pin definition
 GATE_PIN = int(config.get("PINS", "GATE"))
+
+GREEN_LED_PIN = int(config.get("PINS", "GREEN_LED"))
+RED_LED_PIN = int(config.get("PINS", "RED_LED"))
+
 E_PIN = int(config.get("PINS", "ECHO"))  # Echo Pin (ultrasonic Sensor)
 T_PIN = int(config.get("PINS", "TRIGGER"))  # Trigger Pin (ultrasonic Sensor)
 
@@ -110,6 +114,11 @@ class FaceID:
         self.board = py4.Pymata4(ARDUINO_PORT)
 
         self.board.set_pin_mode_digital_output(GATE_PIN)
+
+        self.green_led = self.board.set_pin_mode_digital_output(
+            GREEN_LED_PIN)  # Green LED on digital pin 6
+        self.red_led = self.board.set_pin_mode_digital_output(
+            RED_LED_PIN)  # Red LED on digital pin
 
     def enroll(self):
         # Enroll function using FaceAuthenticator class
@@ -263,6 +272,8 @@ class FaceID:
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
+            self.blink_green_led()
+
             ft_image_url = asyncio.run(self.fb.upload_image(
                 self.img_filename, f'{user_id}.jpg'))
 
@@ -272,6 +283,8 @@ class FaceID:
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
+
+            self.blink_red_led()
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
@@ -287,3 +300,17 @@ class FaceID:
         time.sleep(1)
         self.board.digital_write(GATE_PIN, 1)
         return
+
+    def blink_green_led(self):
+        for i in range(3):
+            self.green_led.digital_write(1)  # Turn on LED
+            time.sleep(0.5)  # Wait for 0.5 seconds
+            self.green_led.digital_write(0)  # Turn off LED
+            time.sleep(0.5)  # Wait for 0.5 seconds
+
+    def blink_red_led(self):
+        for i in range(3):
+            self.red_led.digital_write(1)  # Turn on LED
+            time.sleep(0.5)  # Wait for 0.5 seconds
+            self.red_led.digital_write(0)  # Turn off LED
+            time.sleep(0.5)  # Wait for 0.5 seconds
