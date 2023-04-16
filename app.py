@@ -78,14 +78,6 @@ class FaceID:
         self.enroll_button = tk.Button(
             self.button_frame, image=self.enroll_image, command=self.enroll, bd=0)
         self.enroll_button.pack(side=tk.LEFT, padx=(60, 0))
-        # Remove all users Button
-        # self.remove_all_image = Image.open("./images/remove_all.png")
-        # self.remove_all_image = self.remove_all_image.resize(
-        #     (90, 90), Image.LANCZOS)  # Resize image to 30x30
-        # self.remove_all_image = ImageTk.PhotoImage(self.remove_all_image)
-        # self.remove_all_button = tk.Button(
-        #     self.button_frame, image=self.remove_all_image, command=self.confirm_remove_all_users, bd=0)
-        # self.remove_all_button.pack(side=tk.LEFT, padx=(10, 0))
 
         # rsid_py authenticator instance
         self.f = FaceAuthenticator(CAM_PORT)
@@ -138,8 +130,6 @@ class FaceID:
             text=f"Enrolled users: {len(self.f.query_user_ids())}")
 
     def authenticate(self):
-        # self.f.preview(False)
-        # status_msg = 'Detecting person...'
         self.f.authenticate(on_result=self.on_result, on_faces=self.on_faces)
 
         # add this code to capture and save the image
@@ -270,7 +260,6 @@ class FaceID:
         self.detected_faces = [{'face': f} for f in faces]
 
     def on_result(self, result, user_id):
-        print(result)
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
@@ -283,9 +272,6 @@ class FaceID:
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
-
-            # ft_image_url = asyncio.run(self.fb.upload_image(
-            #     self.img_filename, f'{user_id}.jpg'))
 
             asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
@@ -301,14 +287,3 @@ class FaceID:
         time.sleep(1)
         self.board.digital_write(GATE_PIN, 1)
         return
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = FaceID(root)
-
-    # Start ultrasonic detection thread
-    ultrasonic_thread = threading.Thread(target=app.start_ultrasonic_detection)
-    ultrasonic_thread.start()
-
-    root.mainloop()
