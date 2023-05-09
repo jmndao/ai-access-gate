@@ -147,7 +147,6 @@ class FaceID:
             time.sleep(0.05)
 
             distance = int(self.board.sonar_read(T_PIN)[0])
-            print("Distance: ", distance)
             if distance >= 10 and distance <= 50:
                 self.authenticate()
 
@@ -273,7 +272,7 @@ class FaceID:
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
             # Open the door
-            self.ard.open_door()
+            self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
