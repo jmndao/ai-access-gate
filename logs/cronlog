@@ -1,0 +1,15 @@
+ln: failed to create symbolic link '/dev/cam': File exists
+/usr/local/lib/python3.9/dist-packages/google/cloud/firestore_v1/base_collection.py:290: UserWarning: Detected filter using positional arguments. Prefer using the 'filter' keyword argument instead.
+  return query.where(field_path, op_string, value)
+Traceback (most recent call last):
+  File "/home/daust/ai-access-gate/runner.py", line 50, in <module>
+    main()
+  File "/home/daust/ai-access-gate/runner.py", line 22, in main
+    super_admin = asyncio.run(db.get_admin())
+  File "/usr/lib/python3.9/asyncio/runners.py", line 44, in run
+    return loop.run_until_complete(main)
+  File "/usr/lib/python3.9/asyncio/base_events.py", line 642, in run_until_complete
+    return future.result()
+  File "/home/daust/ai-access-gate/db.py", line 75, in get_admin
+    return user
+UnboundLocalError: local variable 'user' referenced before assignment
