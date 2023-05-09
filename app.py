@@ -261,7 +261,7 @@ class FaceID:
     def on_faces(self, faces, timestamp):
         self.detected_faces = [{'face': f} for f in faces]
 
-    def on_result(self, result):
+    def on_result(self, result, user_id=None):
         # Enroll user and save their face in the database with a random user id
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
