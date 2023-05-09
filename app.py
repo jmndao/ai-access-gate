@@ -260,28 +260,28 @@ class FaceID:
     def on_faces(self, faces, timestamp):
         self.detected_faces = [{'face': f} for f in faces]
 
-    def on_result(self, result, user_id):
+    def on_result(self, result):
+        # Enroll user and save their face in the database with a random user id
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
-            ft_image_url = asyncio.run(self.fb.upload_image(
-                self.img_filename, f'{user_id}.jpg'))
+            asyncio.run(self.fb.upload_image(
+                self.img_filename, f'{self.face_id}.jpg'))
 
-            asyncio.run(self.fb.save_data(user_id=user_id, status="Success",
+            asyncio.run(self.fb.save_data(user_id=f"user_id_{time.strftime('%Y%m%d%H%M%S')}",
+                                          status="Success",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
-            self.gate_trigger()
+            # Open the door
+            self.ard.open_door()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
-            asyncio.run(self.fb.save_data(user_id=user_id, status="Forbidden",
+            asyncio.run(self.fb.save_data(user_id=f"user_id_{time.strftime('%Y%m%d%H%M%S')}",
+                                          status="Forbidden",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
-
         else:
-            self.status_msg = "Please correct your posture"
-
-            asyncio.run(self.fb.save_data(user_id=user_id, status="Bad Posture",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
+            self.status_msg = "No face detected"
 
     def gate_trigger(self):
         self.board.digital_write(GATE_PIN, 0)
