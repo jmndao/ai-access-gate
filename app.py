@@ -117,7 +117,7 @@ class FaceID:
                       on_faces=self.on_faces, user_id=f"user_{int(time.time() / 1000)}")
         self.update_count_label()
 
-    def on_enroll_result(self, result, user_id):
+    def on_enroll_result(self, result):
         if result == AuthenticateStatus.Success:
             messagebox.showinfo("Enrollment Successful",
                                 "You've been enrolled successfully")
