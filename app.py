@@ -269,8 +269,7 @@ class FaceID:
             asyncio.run(self.fb.upload_image(
                 self.img_filename, f'{self.face_id}.jpg'))
 
-            asyncio.run(self.fb.save_data(user_id=f"user_id_{time.strftime('%Y%m%d%H%M%S')}",
-                                          status="Success",
+            asyncio.run(self.fb.save_data(status="Success",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
             # Open the door
@@ -278,8 +277,7 @@ class FaceID:
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
-            asyncio.run(self.fb.save_data(user_id=f"user_id_{time.strftime('%Y%m%d%H%M%S')}",
-                                          status="Forbidden",
+            asyncio.run(self.fb.save_data(status="Forbidden",
                                           current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
         else:
             self.status_msg = "No face detected"

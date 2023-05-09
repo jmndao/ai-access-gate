@@ -26,7 +26,7 @@ class FirebaseAdminDB:
 
     async def save_data(self, status, current_time, image_url=None):
         data = {
-            'user_id': f"user_{int(time.time() / 1000)}",
+            'user_id': f"user_id_{time.strftime('%Y%m%d%H%M%S')}",
             'status': status,
             'current_time': current_time,
             'image_url': image_url
