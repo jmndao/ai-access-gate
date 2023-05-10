@@ -1,10 +1,16 @@
 [Unit]
-Description=My Program
+Description=Face ID Recognition System
 After=multi-user.target
 
 [Service]
-Type=idle
-ExecStart=/usr/bin/python3 ~/ai-access-gate/app.py
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/daust/.Xauthority
+Type=simple
+User=daust
+ExecStart=/usr/bin/python3 /home/daust/ai-access-gate/runner.py
+Restart=always
+RestartSec=10
+TimeoutSec=infinity
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target

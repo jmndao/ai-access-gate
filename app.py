@@ -5,7 +5,6 @@ from threading import Lock
 
 import numpy as np
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
 
 import configparser as cfg
@@ -94,8 +93,13 @@ class FaceID:
         self.status_msg = ""
         self.img_filename = f'captures/user.jpeg'
 
+        # Get full path to serviceAccount.json file
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        cred_file = os.path.join(BASE_DIR, "creds.json")
+
+        print("Service Acc. file path:", cred_file)
         # Initialize firebase
-        self.fb = FirebaseAdminDB(cred_file_path="./creds.json")
+        self.fb = FirebaseAdminDB(cred_file_path=cred_file)
 
         self.update_count_label()
 
