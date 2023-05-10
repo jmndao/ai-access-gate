@@ -48,7 +48,7 @@ class FaceID:
         self.header_label.pack(side=tk.TOP)
 
         # Default path to face-id image
-        self.face_id = "./images/face-id.png"
+        self.face_id = os.path.join(BASE_DIR, "images/face-id.png")
 
         # Set up image and message
         self.image = Image.open(f"{self.face_id}")
@@ -63,7 +63,7 @@ class FaceID:
         self.button_frame = tk.Frame(self.master)
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=20)
         # Quit Button
-        self.quit_image = Image.open("./images/quit.png")
+        self.quit_image = Image.open(os.path.join(BASE_DIR, "images/quit.png"))
         self.quit_image = self.quit_image.resize(
             (90, 90), Image.LANCZOS)  # Resize image to 30x30
         self.quit_image = ImageTk.PhotoImage(self.quit_image)
@@ -71,7 +71,7 @@ class FaceID:
             self.button_frame, image=self.quit_image, command=self.quit, bd=0)
         self.quit_button.pack(side=tk.RIGHT, padx=(0, 60))
         # Enroll Button
-        self.enroll_image = Image.open("./images/enroll.png")
+        self.enroll_image = Image.open(os.path.join(BASE_DIR, "images/enroll.png"))
         self.enroll_image = self.enroll_image.resize(
             (90, 90), Image.LANCZOS)  # Resize image to 30x30
         self.enroll_image = ImageTk.PhotoImage(self.enroll_image)
