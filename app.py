@@ -14,7 +14,8 @@ from PIL import Image, ImageTk
 import cv2
 from rsid_py import FaceAuthenticator, AuthenticateStatus, EnrollStatus, PreviewConfig, Preview
 
-from db import FirebaseAdminDB
+# from db import FirebaseAdminDB
+from db_sqlite import DBSqlite
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -71,7 +72,8 @@ class FaceID:
             self.button_frame, image=self.quit_image, command=self.quit, bd=0)
         self.quit_button.pack(side=tk.RIGHT, padx=(0, 60))
         # Enroll Button
-        self.enroll_image = Image.open(os.path.join(BASE_DIR, "images/enroll.png"))
+        self.enroll_image = Image.open(
+            os.path.join(BASE_DIR, "images/enroll.png"))
         self.enroll_image = self.enroll_image.resize(
             (90, 90), Image.LANCZOS)  # Resize image to 30x30
         self.enroll_image = ImageTk.PhotoImage(self.enroll_image)
@@ -96,9 +98,12 @@ class FaceID:
         self.img_filename = f'captures/user.jpeg'
 
         # Get full path to serviceAccount.json file
-        cred_file = os.path.join(BASE_DIR, "creds.json")
+        # cred_file = os.path.join(BASE_DIR, "creds.json")
         # Initialize firebase
-        self.fb = FirebaseAdminDB(cred_file_path=cred_file)
+        # self.fb = FirebaseAdminDB(cred_file_path=cred_file)
+
+        # Initialize DBSqlite
+        self.db = DBSqlite(db=os.path.join(BASE_DIR, "db.sqlite3"))
 
         self.update_count_label()
 
@@ -267,19 +272,30 @@ class FaceID:
         if result == AuthenticateStatus.Success:
             self.status_msg = "Authentication successful"
 
-            asyncio.run(self.fb.upload_image(
-                self.img_filename, f'{self.face_id}.jpg'))
+            # Save to sqlite
+            self.db.insert(user_id=f"user_{time.strftime('%Y-%m-%d %H:%M:%S')}",
+                           current_time=time.strftime("%Y-%m-%d %H:%M:%S"),
+                           status="Success",
+                           image=f'{self.face_id}.jpg')
 
-            asyncio.run(self.fb.save_data(status="Success",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
+            # asyncio.run(self.fb.upload_image(
+            #     self.img_filename, f'{self.face_id}.jpg'))
+
+            # asyncio.run(self.fb.save_data(status="Success",
+            #                               current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
 
             # Open the door
             self.gate_trigger()
         elif result == AuthenticateStatus.Failure or result == AuthenticateStatus.Forbidden:
             self.status_msg = "Authentication failed"
 
-            asyncio.run(self.fb.save_data(status="Forbidden",
-                                          current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
+            self.db.insert(user_id=f"user_{time.strftime('%Y-%m-%d %H:%M:%S')}",
+                           current_time=time.strftime("%Y-%m-%d %H:%M:%S"),
+                           status="Failed",
+                           image=f'{self.face_id}.jpg')
+
+            # asyncio.run(self.fb.save_data(status="Forbidden",
+            #                               current_time=time.strftime("%Y-%m-%d %H:%M:%S")))
         else:
             self.status_msg = "No face detected"
 
