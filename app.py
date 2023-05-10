@@ -23,12 +23,12 @@ config = cfg.RawConfigParser()
 # Load the config
 config.read(os.path.join(BASE_DIR, "config.ini"))
 
-CAM_PORT = config.get("PORTS", "CAM")
-ARDUINO_PORT = config.get("PORTS", "ARDUINO")
+CAM_PORT = "/dev/cam"
+ARDUINO_PORT = "/dev/arduino"
 # Pin definition
-GATE_PIN = int(config.get("PINS", "GATE"))
-E_PIN = int(config.get("PINS", "ECHO"))  # Echo Pin (ultrasonic Sensor)
-T_PIN = int(config.get("PINS", "TRIGGER"))  # Trigger Pin (ultrasonic Sensor)
+GATE_PIN = 7  # Gate Pin (servo)
+E_PIN = 2  # Echo Pin (ultrasonic Sensor)
+T_PIN = 3  # Trigger Pin (ultrasonic Sensor)
 
 
 class FaceID:
