@@ -19,7 +19,7 @@ from db import FirebaseAdminDB
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-config = cfg.ConfigParser()
+config = cfg.RawConfigParser()
 # Load the config
 config.read(os.path.join(BASE_DIR, "config.ini"))
 
