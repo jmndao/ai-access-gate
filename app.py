@@ -44,7 +44,7 @@ class FaceID:
 
         # Set up header title and count label
         self.header_label = tk.Label(
-            self.master, text="DAUST Face ID Access", font=("Arial", 34), padx=20, pady=20)
+            self.master, text="Khelcom Face ID Access", font=("Arial", 34), padx=20, pady=20)
         self.header_label.pack(side=tk.TOP)
 
         # Default path to face-id image
