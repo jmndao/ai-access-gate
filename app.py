@@ -146,7 +146,7 @@ class FaceID:
 
             distance = int(self.board.sonar_read(T_PIN)[0])
             print("Distance: ", distance)
-            if distance >= 10 and distance <= 30:
+            if distance >= 10 and distance <= 40:
                 self.authenticate()
 
     def quit(self):
