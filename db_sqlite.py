@@ -5,7 +5,7 @@ class DBSqlite:
 
     def __init__(self, db):
 
-        self.conn = sqlite3.connect(db)
+        self.conn = sqlite3.connect(db, check_same_thread=False)
         self.cur = self.conn.cursor()
         # Create table
         self.cur.execute("CREATE TABLE IF NOT EXISTS face_ids (id INTEGER PRIMARY KEY, user_id text, status text, current_time text, image_url text)")
