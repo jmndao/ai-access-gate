@@ -17,9 +17,11 @@ from rsid_py import FaceAuthenticator, AuthenticateStatus, EnrollStatus, Preview
 from db import FirebaseAdminDB
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 config = cfg.ConfigParser()
 # Load the config
-config.read("config.ini")
+config.read(os.path.join(BASE_DIR, "config.ini"))
 
 CAM_PORT = config.get("PORTS", "CAM")
 ARDUINO_PORT = config.get("PORTS", "ARDUINO")
@@ -94,7 +96,6 @@ class FaceID:
         self.img_filename = f'captures/user.jpeg'
 
         # Get full path to serviceAccount.json file
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         cred_file = os.path.join(BASE_DIR, "creds.json")
 
         print("Service Acc. file path:", cred_file)
