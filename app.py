@@ -33,7 +33,7 @@ T_PIN = 3  # Trigger Pin (ultrasonic Sensor)
 
 
 class FaceID:
-    def __init__(self, master):
+    def __init__(self, master, db):
         # Set up main window
         self.master = master
         self.master.title("Face ID Access")
@@ -103,7 +103,7 @@ class FaceID:
         # self.fb = FirebaseAdminDB(cred_file_path=cred_file)
 
         # Initialize DBSqlite
-        self.db = DBSqlite(db=os.path.join(BASE_DIR, "db.sqlite3"))
+        self.db = db
 
         self.update_count_label()
 

@@ -1,6 +1,7 @@
 import os
 import threading
 import tkinter as tk
+from db_sqlite import DBSqlite
 from app import FaceID
 
 
@@ -13,9 +14,13 @@ except Exception as e:
     print("Error at port linking: ", e)
     pass
 
+# Sqlite db
+db_path = os.path.join(os.path.dirname(__file__), 'face_id.db')
+db = DBSqlite(db=db_path)
+
 # Create the Tkinter app
 root = tk.Tk()
-app = FaceID(root)
+app = FaceID(root, db=db)
 
 # Start ultrasonic detection thread
 ultrasonic_thread = threading.Thread(target=app.start_ultrasonic_detection)
