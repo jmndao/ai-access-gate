@@ -17,8 +17,6 @@ except Exception as e:
 root = tk.Tk()
 app = FaceID(root)
 
-app.remove_all_users()
-
 # Start ultrasonic detection thread
 ultrasonic_thread = threading.Thread(target=app.start_ultrasonic_detection)
 ultrasonic_thread.start()
