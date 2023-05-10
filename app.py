@@ -1,7 +1,6 @@
 import os
 import time
 import asyncio
-import threading
 from threading import Lock
 
 import numpy as np
@@ -14,7 +13,7 @@ import configparser as cfg
 from PIL import Image, ImageTk
 
 import cv2
-from rsid_py import FaceAuthenticator, AuthenticateStatus, PreviewConfig, Preview
+from rsid_py import FaceAuthenticator, AuthenticateStatus, EnrollStatus, PreviewConfig, Preview
 
 from db import FirebaseAdminDB
 
@@ -118,8 +117,7 @@ class FaceID:
         self.update_count_label()
 
     def on_enroll_result(self, result):
-        print(f"Enroll result: {result}")
-        if result == AuthenticateStatus.Success:
+        if result == EnrollStatus.Success:
             messagebox.showinfo("Enrollment Successful",
                                 "You've been enrolled successfully")
         else:
@@ -147,6 +145,7 @@ class FaceID:
             time.sleep(0.05)
 
             distance = int(self.board.sonar_read(T_PIN)[0])
+            print("Distance: ", distance)
             if distance >= 10 and distance <= 50:
                 self.authenticate()
 
