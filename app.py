@@ -113,10 +113,12 @@ class FaceID:
             print('Failed importing pyfirmata. Please install it (pip install pyfirmata)')
             exit(0)
 
+
         # Define the board via pymata protocol
         self.board = py4.Pymata4(ARDUINO_PORT)
 
         self.board.set_pin_mode_digital_output(GATE_PIN)
+        self.board.digital_write(GATE_PIN, 1)
 
     def enroll(self):
         # Enroll function using FaceAuthenticator class
