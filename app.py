@@ -160,6 +160,8 @@ class FaceID:
                 self.authenticate()
 
     def quit(self):
+        # Make sure the gate is closed
+        self.board.digital_write(GATE_PIN, 1)
         # Release resources and stop threads
         self.board.shutdown()
         # Add functionality for Quit button
